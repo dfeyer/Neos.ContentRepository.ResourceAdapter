@@ -93,8 +93,16 @@ class ResourceImporterCommandController extends CommandController
         $context = $this->createContext();
         $rootNode = $context->getRootNode();
 
+        $this->outputLine();
+        $this->outputLine('  <b>Create asset storage</b>');
         $this->createAssetStorage($rootNode, $storageName);
+
+        $this->outputLine();
+        $this->outputLine('  <b>Create asset collection storage</b>');
         $this->createAssetCollectionStorage($rootNode, $storageName);
+
+        $this->outputLine();
+        $this->outputLine('  <b>Create tag storage</b>');
         $this->createTagStorage($rootNode, $storageName);
     }
 
@@ -116,9 +124,9 @@ class ResourceImporterCommandController extends CommandController
             $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::ASSET_STORAGE));
             $template->setName($storageName);
             $assetStorage = $baseNode->createNodeFromTemplate($template);
-            $this->outputLine('  <info>++</info> Collection Storage created');
+            $this->outputLine('  <info>++</info> collection storage created');
         } else {
-            $this->outputLine('  <comment>~~</comment> Collection Storage exists');
+            $this->outputLine('  <comment>~~</comment> collection storage exists');
         }
         $collection = $assetStorage->getNode('persistent');
         if ($collection === null) {
@@ -126,9 +134,9 @@ class ResourceImporterCommandController extends CommandController
             $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::COLLECTION));
             $template->setName('persistent');
             $assetStorage->createNodeFromTemplate($template);
-            $this->outputLine('  <info>++</info> Persistent Collection created');
+            $this->outputLine('  <info>++</info> persistent collection created');
         } else {
-            $this->outputLine('  <comment>~~</comment> Persistent Collection exists');
+            $this->outputLine('  <comment>~~</comment> persistent collection exists');
         }
         $collection = $assetStorage->getNode('static');
         if ($collection === null) {
@@ -136,9 +144,9 @@ class ResourceImporterCommandController extends CommandController
             $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::COLLECTION));
             $template->setName('static');
             $assetStorage->createNodeFromTemplate($template);
-            $this->outputLine('  <info>++</info> Static Collection created');
+            $this->outputLine('  <info>++</info> static collection created');
         } else {
-            $this->outputLine('  <comment>~~</comment> Static Collection exists');
+            $this->outputLine('  <comment>~~</comment> static collection exists');
         }
     }
 
@@ -234,23 +242,26 @@ class ResourceImporterCommandController extends CommandController
         $rootNode = $context->getRootNode();
         $storage = $rootNode->getNode('assets/' . $storageName . '/persistent');
         if ($storage === null) {
-            $this->outputLine('  <error>!!</error> Assets storage not found');
+            $this->outputLine('  <error>!!</error> assets storage not found');
             $this->sendAndExit(1);
         }
+        $this->outputLine('  <b>Import assets ...</b>');
         $this->importAssets($storage);
 
         $storage = $rootNode->getNode('tags/' . $storageName);
         if ($storage === null) {
-            $this->outputLine('  <error>!!</error> Tags Storage not found');
+            $this->outputLine('  <error>!!</error> tags Storage not found');
             $this->sendAndExit(1);
         }
+        $this->outputLine('  <b>Import tags ...</b>');
         $this->importTags($storage);
 
         $storage = $rootNode->getNode('assetcollections/' . $storageName);
         if ($storage === null) {
-            $this->outputLine('  <error>!!</error> Asset Collection Storage not found');
+            $this->outputLine('  <error>!!</error> asset collection storage not found');
             $this->sendAndExit(1);
         }
+        $this->outputLine('  <b>Import asset collections ...</b>');
         $this->importAssetCollections($storage);
 
     }
