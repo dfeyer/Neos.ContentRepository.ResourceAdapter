@@ -11,6 +11,7 @@ namespace Neos\ContentRepository\ResourceAdapter\Command;
  * source code.
  */
 
+use Cocur\Slugify\Slugify;
 use Neos\ContentRepository\ResourceAdapter\Domain\Model\NodeTypes;
 use Neos\ContentRepository\ResourceAdapter\Domain\Service\ResourceContext;
 use Neos\ContentRepository\ResourceAdapter\Domain\Service\ResourceContextFactory;
@@ -23,14 +24,18 @@ use TYPO3\Flow\Resource\Resource;
 use TYPO3\Media\Domain\Model\Adjustment\AbstractAdjustment;
 use TYPO3\Media\Domain\Model\Adjustment\CropImageAdjustment;
 use TYPO3\Media\Domain\Model\Adjustment\ResizeImageAdjustment;
+use TYPO3\Media\Domain\Model\AssetCollection;
 use TYPO3\Media\Domain\Model\AssetInterface;
 use TYPO3\Media\Domain\Model\Audio;
 use TYPO3\Media\Domain\Model\Document;
 use TYPO3\Media\Domain\Model\Image;
 use TYPO3\Media\Domain\Model\ImageVariant;
+use TYPO3\Media\Domain\Model\Tag;
 use TYPO3\Media\Domain\Model\Thumbnail;
 use TYPO3\Media\Domain\Model\Video;
+use TYPO3\Media\Domain\Repository\AssetCollectionRepository;
 use TYPO3\Media\Domain\Repository\AssetRepository;
+use TYPO3\Media\Domain\Repository\TagRepository;
 use TYPO3\TYPO3CR\Domain\Model\NodeInterface;
 use TYPO3\TYPO3CR\Domain\Model\NodeTemplate;
 use TYPO3\TYPO3CR\Domain\Service\NodeTypeManager;
@@ -57,6 +62,18 @@ class ResourceImporterCommandController extends CommandController
 
     /**
      * @Flow\Inject
+     * @var AssetCollectionRepository
+     */
+    protected $assetCollectionRepository;
+
+    /**
+     * @Flow\Inject
+     * @var TagRepository
+     */
+    protected $tagRepository;
+
+    /**
+     * @Flow\Inject
      * @var PersistenceManagerInterface
      */
     protected $persistenceManager;
@@ -70,35 +87,106 @@ class ResourceImporterCommandController extends CommandController
     public function createCommand($storageName)
     {
         $this->outputLine();
-        $this->outputLine('<b>Create default storage at path "%s"</b>', [$storageName]);
+        $this->outputLine('<b>Create default storage "%s"</b>', [$storageName]);
         $this->outputLine();
+
         $context = $this->createContext();
         $rootNode = $context->getRootNode();
-        $baseNode = $rootNode->getNode('resources');
+
+        $this->createAssetStorage($rootNode, $storageName);
+        $this->createAssetCollectionStorage($rootNode, $storageName);
+        $this->createTagStorage($rootNode, $storageName);
+    }
+
+    /**
+     * @param NodeInterface $rootNode
+     * @param string $storageName
+     */
+    protected function createAssetStorage(NodeInterface $rootNode, $storageName)
+    {
+        $baseNode = $rootNode->getNode('assets');
         if ($baseNode === null) {
             $template = new NodeTemplate();
-            $template->setName('resources');
+            $template->setName('assets');
+            $baseNode = $rootNode->createNodeFromTemplate($template);
+        }
+        $assetStorage = $baseNode->getNode($storageName);
+        if ($assetStorage === null) {
+            $template = new NodeTemplate();
+            $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::ASSET_STORAGE));
+            $template->setName($storageName);
+            $assetStorage = $baseNode->createNodeFromTemplate($template);
+            $this->outputLine('  <info>++</info> Collection Storage created');
+        } else {
+            $this->outputLine('  <comment>~~</comment> Collection Storage exists');
+        }
+        $collection = $assetStorage->getNode('persistent');
+        if ($collection === null) {
+            $template = new NodeTemplate();
+            $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::COLLECTION));
+            $template->setName('persistent');
+            $assetStorage->createNodeFromTemplate($template);
+            $this->outputLine('  <info>++</info> Persistent Collection created');
+        } else {
+            $this->outputLine('  <comment>~~</comment> Persistent Collection exists');
+        }
+        $collection = $assetStorage->getNode('static');
+        if ($collection === null) {
+            $template = new NodeTemplate();
+            $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::COLLECTION));
+            $template->setName('static');
+            $assetStorage->createNodeFromTemplate($template);
+            $this->outputLine('  <info>++</info> Static Collection created');
+        } else {
+            $this->outputLine('  <comment>~~</comment> Static Collection exists');
+        }
+    }
+
+    /**
+     * @param NodeInterface $rootNode
+     * @param string $storageName
+     */
+    protected function createAssetCollectionStorage(NodeInterface $rootNode, $storageName)
+    {
+        $baseNode = $rootNode->getNode('assetcollections');
+        if ($baseNode === null) {
+            $template = new NodeTemplate();
+            $template->setName('assetcollections');
             $baseNode = $rootNode->createNodeFromTemplate($template);
         }
         $collectionGroupNode = $baseNode->getNode($storageName);
         if ($collectionGroupNode === null) {
             $template = new NodeTemplate();
-            $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::COLLECTION_GROUP));
+            $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::ASSETCOLLECTION_STORAGE));
             $template->setName($storageName);
             $collectionGroupNode = $baseNode->createNodeFromTemplate($template);
-            $this->outputLine('  <info>++</info> Collection Group node created');
+            $this->outputLine('  <info>++</info> Asset Storage created');
         } else {
-            $this->outputLine('  <comment>~~</comment> Collection Group exists');
+            $this->outputLine('  <comment>~~</comment> Asset Storage exists');
         }
-        $collectionNode = $collectionGroupNode->getNode('persistent');
-        if ($collectionNode === null) {
+    }
+
+    /**
+     * @param NodeInterface $rootNode
+     * @param string $storageName
+     */
+    protected function createTagStorage(NodeInterface $rootNode, $storageName)
+    {
+        $baseNode = $rootNode->getNode('tags');
+        if ($baseNode === null) {
             $template = new NodeTemplate();
-            $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::COLLECTION));
-            $template->setName('persistent');
-            $collectionGroupNode->createNodeFromTemplate($template);
-            $this->outputLine('  <info>++</info> Persistent Collection node created');
+            $template->setName('tags');
+            $baseNode = $rootNode->createNodeFromTemplate($template);
+        }
+        $collectionGroupNode = $baseNode->getNode($storageName);
+        if ($collectionGroupNode === null) {
+            $template = new NodeTemplate();
+            $template->setNodeType($this->nodeTypeManager->getNodeType(NodeTypes::TAG_STORAGE));
+            $template->setName($storageName);
+            $collectionGroupNode = $baseNode->createNodeFromTemplate($template);
+            $this->outputLine('  <info>++</info> Tag Storage created');
         } else {
-            $this->outputLine('  <comment>~~</comment> Persistent Collection exists');
+            $this->outputLine('  <comment>~~</comment> Tag Storage exists');
         }
     }
 
@@ -107,18 +195,28 @@ class ResourceImporterCommandController extends CommandController
      *
      * @param string $storageName
      */
-    public function flushCommand($storageName) {
+    public function flushCommand($storageName)
+    {
         $this->outputLine();
         $this->outputLine('<b>Flush all resources to path "%s"</b>', [$storageName]);
         $this->outputLine();
         $context = $this->createContext();
         $rootNode = $context->getRootNode();
-        $collectionNode = $rootNode->getNode('resources/' . $storageName);
-        if ($collectionNode === null) {
-            $this->outputLine('  <error>!!</error> Mount Point node not found');
-            $this->sendAndExit(1);
+        $assets = $rootNode->getNode('assets/' . $storageName);
+        if ($assets !== null) {
+            $this->outputLine('  <info>--</info> Flush assets');
+            $assets->remove();
         }
-        $collectionNode->remove();
+        $tags = $rootNode->getNode('tags/' . $storageName);
+        if ($tags !== null) {
+            $this->outputLine('  <info>--</info> Flush tags');
+            $tags->remove();
+        }
+        $assetCollections = $rootNode->getNode('assetcollections/' . $storageName);
+        if ($tags !== null) {
+            $this->outputLine('  <info>--</info> Flush asset collections');
+            $assetCollections->remove();
+        }
     }
 
     /**
@@ -134,30 +232,90 @@ class ResourceImporterCommandController extends CommandController
         $this->outputLine();
         $context = $this->createContext();
         $rootNode = $context->getRootNode();
-        $collectionNode = $rootNode->getNode('resources/' . $storageName . '/persistent');
-        if ($collectionNode === null) {
-            $this->outputLine('  <error>!!</error> Peristente Collection node not found');
+        $storage = $rootNode->getNode('assets/' . $storageName . '/persistent');
+        if ($storage === null) {
+            $this->outputLine('  <error>!!</error> Assets storage not found');
             $this->sendAndExit(1);
         }
+        $this->importAssets($storage);
+
+        $storage = $rootNode->getNode('tags/' . $storageName);
+        if ($storage === null) {
+            $this->outputLine('  <error>!!</error> Tags Storage not found');
+            $this->sendAndExit(1);
+        }
+        $this->importTags($storage);
+
+        $storage = $rootNode->getNode('assetcollections/' . $storageName);
+        if ($storage === null) {
+            $this->outputLine('  <error>!!</error> Asset Collection Storage not found');
+            $this->sendAndExit(1);
+        }
+        $this->importAssetCollections($storage);
+
+    }
+
+    /**
+     * @param NodeInterface $storage
+     * @throws Exception
+     */
+    protected function importTags(NodeInterface $storage)
+    {
+        $slugify = new Slugify();
+        /** @var Tag $tag */
+        foreach ($this->tagRepository->findAll() as $tag) {
+            $identifier = $this->persistenceManager->getIdentifierByObject($tag);
+            $name = $slugify->slugify($tag->getLabel());
+            $properties = [
+                'label' => $tag->getLabel(),
+            ];
+            $this->createOrUpdateNode($this->createContext(), $storage, $identifier, NodeTypes::TAG, $properties, null, $name);
+        }
+    }
+
+    /**
+     * @param NodeInterface $storage
+     * @throws Exception
+     */
+    protected function importAssetCollections(NodeInterface $storage)
+    {
+        $slugify = new Slugify();
+        /** @var AssetCollection $assetCollection */
+        foreach ($this->assetCollectionRepository->findAll() as $assetCollection) {
+            $identifier = $this->persistenceManager->getIdentifierByObject($assetCollection);
+            $name = $slugify->slugify($assetCollection->getTitle());
+            $properties = [
+                'title' => $assetCollection->getTitle(),
+            ];
+            $this->createOrUpdateNode($this->createContext(), $storage, $identifier, NodeTypes::TAG, $properties, null, $name);
+        }
+    }
+
+    /**
+     * @param NodeInterface $storage
+     * @throws Exception
+     */
+    protected function importAssets(NodeInterface $storage)
+    {
         $iterator = $this->assetRepository->findAllIterator();
         /** @var AssetInterface $asset */
         foreach ($this->assetRepository->iterate($iterator) as $asset) {
             switch (get_class($asset)) {
                 case Document::class:
                     /** @var Document $asset */
-                    $this->importDocument($asset, $collectionNode);
+                    $this->importDocument($asset, $storage);
                     break;
                 case Video::class:
                     /** @var Video $asset */
-                    $this->importVideo($asset, $collectionNode);
+                    $this->importVideo($asset, $storage);
                     break;
                 case Audio::class:
                     /** @var Audio $asset */
-                    $this->importAudio($asset, $collectionNode);
+                    $this->importAudio($asset, $storage);
                     break;
                 case Image::class:
                     /** @var Image $asset */
-                    $this->importImage($asset, $collectionNode);
+                    $this->importImage($asset, $storage);
                     break;
             }
         }
@@ -168,7 +326,8 @@ class ResourceImporterCommandController extends CommandController
      * @param NodeInterface $parentNode
      * @return void
      */
-    protected function importDocument(Document $asset, NodeInterface $parentNode) {
+    protected function importDocument(Document $asset, NodeInterface $parentNode)
+    {
         $identifier = $asset->getIdentifier();
         $properties = [
             'title' => $asset->getTitle(),
@@ -201,7 +360,8 @@ class ResourceImporterCommandController extends CommandController
      * @param NodeInterface $parentNode
      * @return void
      */
-    protected function importAudio(Audio $asset, NodeInterface $parentNode) {
+    protected function importAudio(Audio $asset, NodeInterface $parentNode)
+    {
         $identifier = $asset->getIdentifier();
         $properties = [
             'title' => $asset->getTitle(),
@@ -217,7 +377,8 @@ class ResourceImporterCommandController extends CommandController
      * @return void
      * @throws Exception
      */
-    protected function importImage(Image $asset, NodeInterface $parentNode) {
+    protected function importImage(Image $asset, NodeInterface $parentNode)
+    {
         $identifier = $asset->getIdentifier();
         $properties = [
             'title' => $asset->getTitle(),
@@ -307,13 +468,17 @@ class ResourceImporterCommandController extends CommandController
      * @param string $nodeType
      * @param array $properties
      * @param Resource $resource
+     * @param string $name
      * @return NodeInterface
      */
-    protected function createOrUpdateNode(ResourceContext $context, NodeInterface $parentNode, $identifier, $nodeType, array $properties, Resource $resource = null)
+    protected function createOrUpdateNode(ResourceContext $context, NodeInterface $parentNode, $identifier, $nodeType, array $properties, Resource $resource = null, $name = null)
     {
         $node = $context->getNodeByIdentifier($identifier);
         if ($node === null) {
             $node = $parentNode->createNodeFromTemplate($this->createAssetNodeTemplate($identifier, $nodeType, $properties));
+            if ($name !== null) {
+                $node->setName($name);
+            }
             if ($resource !== null) {
                 $node->getNode('resource')->setContentObject($resource);
             }
@@ -328,7 +493,8 @@ class ResourceImporterCommandController extends CommandController
      * @return NodeTemplate
      * @throws \TYPO3\TYPO3CR\Exception\NodeTypeNotFoundException
      */
-    protected function createAssetNodeTemplate($identifier, $nodeType, array $properties) {
+    protected function createAssetNodeTemplate($identifier, $nodeType, array $properties)
+    {
         $template = new NodeTemplate();
         $template->setIdentifier($identifier);
         $template->setNodeType($this->nodeTypeManager->getNodeType($nodeType));
