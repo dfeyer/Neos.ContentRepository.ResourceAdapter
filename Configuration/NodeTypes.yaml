@@ -1,0 +1,307 @@
+#
+# Tag
+'Neos.ContentRepository.ResourceAdapter:Tag':
+  label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('label'))}"
+  superTypes:
+    'TYPO3.Neos:Node': TRUE
+  ui:
+    label: i18n
+    icon: 'icon-tag'
+    groups:
+      general:
+        label: i18n
+        tab: 'default'
+        position: 1
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:Tag': TRUE
+      '*': FALSE
+  properites:
+    label:
+      type: string
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+
+#
+# CollectionGroup
+'Neos.ContentRepository.ResourceAdapter:CollectionGroup':
+  label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('name'))}"
+  superTypes:
+    'TYPO3.Neos:Node': TRUE
+  ui:
+    label: i18n
+    icon: 'icon-folder-open-o'
+    groups:
+      general:
+        label: i18n
+        tab: 'default'
+        position: 1
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:Collection': TRUE
+      '*': FALSE
+#
+# MountPoint
+'Neos.ContentRepository.ResourceAdapter:Collection':
+  label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('name'))}"
+  superTypes:
+    'TYPO3.Neos:Node': TRUE
+  ui:
+    label: i18n
+    icon: 'icon-folder-open-o'
+    groups:
+      general:
+        label: i18n
+        tab: 'default'
+        position: 1
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:AssetCollection': TRUE
+      'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
+      '*': FALSE
+
+#
+# AssetCollection
+'Neos.ContentRepository.ResourceAdapter:AssetCollection':
+  label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('title'))}"
+  superTypes:
+    'TYPO3.Neos:Node': TRUE
+  ui:
+    label: i18n
+    icon: 'icon-folder'
+    groups:
+      general:
+        label: i18n
+        tab: 'default'
+        position: 1
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:AssetCollection': TRUE
+      'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
+      '*': FALSE
+  properites:
+    title:
+      type: string
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+
+#
+# Asset
+'Neos.ContentRepository.ResourceAdapter:Resource':
+  superTypes:
+    'TYPO3.Neos:Node': TRUE
+  ui:
+    label: i18n
+    icon: 'icon-file'
+    groups:
+      general:
+        label: i18n
+        tab: 'default'
+        position: 1
+  constraints:
+    nodeTypes:
+      '*': FALSE
+
+#
+# Asset
+'Neos.ContentRepository.ResourceAdapter:Asset':
+  abstract: TRUE
+  superTypes:
+    'TYPO3.Neos:Node': TRUE
+    'Neos.ContentRepository.ResourceAdapter:MetaDataMixin': TRUE
+  childNodes:
+    resource:
+      type: 'Neos.ContentRepository.ResourceAdapter:Resource'
+    thumbnails:
+      type: 'TYPO3.Neos:ContentCollection'
+    variants:
+      type: 'TYPO3.Neos:ContentCollection'
+  ui:
+    label: i18n
+    icon: 'icon-file'
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:Thumbnail': TRUE
+      '*': FALSE
+
+#
+# Document
+'Neos.ContentRepository.ResourceAdapter:Document':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
+
+#
+# Audio
+'Neos.ContentRepository.ResourceAdapter:Audio':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
+
+#
+# Video
+'Neos.ContentRepository.ResourceAdapter:Video':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
+    'Neos.ContentRepository.ResourceAdapter:DimensionsMixin': TRUE
+
+#
+# Image
+'Neos.ContentRepository.ResourceAdapter:Image':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
+    'Neos.ContentRepository.ResourceAdapter:DimensionsMixin': TRUE
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:ImageVariant': TRUE
+
+#
+# Thumbnail
+'Neos.ContentRepository.ResourceAdapter:Thumbnail':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:Image': TRUE
+  properites:
+    staticResource:
+      type: string
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    configuration:
+      type: string
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    configurationHash:
+      type: string
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+
+#
+# AbstractVariant
+'Neos.ContentRepository.ResourceAdapter:AbstractVariant':
+  abstract: TRUE
+  childNodes:
+    adjustments:
+      type: 'TYPO3.Neos:ContentCollection'
+
+#
+# ImageVariant
+'Neos.ContentRepository.ResourceAdapter:ImageVariant':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractVariant': TRUE
+    'Neos.ContentRepository.ResourceAdapter:Image': TRUE
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:AbstractImageAdjustment': TRUE
+
+#
+# AbstractAdjustment
+'Neos.ContentRepository.ResourceAdapter:AbstractAdjustment':
+  abstract: TRUE
+  superTypes:
+    'TYPO3.Neos:Node': TRUE
+  constraints:
+    nodeTypes:
+      '*': FALSE
+
+#
+# AbstractImageAdjustment
+'Neos.ContentRepository.ResourceAdapter:AbstractImageAdjustment':
+  abstract: TRUE
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractAdjustment': TRUE
+  properites:
+    position:
+      type: integer
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    imageVariant:
+      type: string
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+
+#
+# CropImageAdjustment
+'Neos.ContentRepository.ResourceAdapter:CropImageAdjustment':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractImageAdjustment': TRUE
+    'Neos.ContentRepository.ResourceAdapter:DimensionsMixin': TRUE
+  ui:
+    label: i18n
+    icon: 'icon-file'
+  properties:
+    position:
+      defaultValue: 10
+    x:
+      type: integer
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    y:
+      type: integer
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+
+#
+# ResizeImageAdjustment
+'Neos.ContentRepository.ResourceAdapter:ResizeImageAdjustment':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractImageAdjustment': TRUE
+    'Neos.ContentRepository.ResourceAdapter:DimensionsMixin': TRUE
+  ui:
+    label: i18n
+    icon: 'icon-file'
+  properties:
+    position:
+      defaultValue: 20
+    maximumWidth:
+      type: integer
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    minimumWidth:
+      type: integer
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    maximumHeight:
+      type: integer
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    minimumHeight:
+      type: integer
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    ratioMode:
+      type: string
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+    allowUpScaling:
+      type: boolean
+      ui:
+        label: i18n
+        inspector:
+          group: 'default'
+
+

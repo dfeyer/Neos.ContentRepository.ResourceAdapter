@@ -1,0 +1,19 @@
+{
+    "description": "Neos Content Repository Adapter for Asset Management",
+    "type": "neos-package",
+    "license": "GPL-3.0+",
+    "require": {
+        "typo3/typo3cr": "*"
+    },
+    "name": "neos/contentrepository-resourceadapter",
+    "autoload": {
+        "psr-4": {
+            "Neos\\ContentRepository\\ResourceAdapter\\": "Classes/"
+        }
+    },
+    "extra": {
+        "neos": {
+            "package-key": "Neos.ContentRepository.ResourceAdapter"
+        }
+    }
+}
