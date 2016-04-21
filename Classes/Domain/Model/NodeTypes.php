@@ -22,7 +22,9 @@ class NodeTypes
 {
     const TAG = 'Neos.ContentRepository.ResourceAdapter:Tag';
     
-    const COLLECTION_GROUP = 'Neos.ContentRepository.ResourceAdapter:CollectionGroup';
+    const TAG_STORAGE = 'Neos.ContentRepository.ResourceAdapter:TagStorage';
+    const ASSET_STORAGE = 'Neos.ContentRepository.ResourceAdapter:AssetStorage';
+    const ASSETCOLLECTION_STORAGE = 'Neos.ContentRepository.ResourceAdapter:AssetCollectionStorage';
 
     const COLLECTION = 'Neos.ContentRepository.ResourceAdapter:Collection';
 

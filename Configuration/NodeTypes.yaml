@@ -1,4 +1,36 @@
 #
+# AbstractStorage
+'Neos.ContentRepository.ResourceAdapter:AbstractStorage':
+  abstract: TRUE
+  label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('name'))}"
+  superTypes:
+    'TYPO3.Neos:Node': TRUE
+  ui:
+    icon: 'icon-folder-open-o'
+    groups:
+      general:
+        label: i18n
+        tab: 'default'
+        position: 1
+  properties:
+    name:
+      type: string
+      label: i18n
+      inspector:
+        group: 'default'
+
+#
+# TagStorage
+'Neos.ContentRepository.ResourceAdapter:TagStorage':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractStorage': TRUE
+  ui:
+    label: i18n
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:Tag': TRUE
+      '*': FALSE
+#
 # Tag
 'Neos.ContentRepository.ResourceAdapter:Tag':
   label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('label'))}"
@@ -25,25 +57,19 @@
           group: 'default'
 
 #
-# CollectionGroup
-'Neos.ContentRepository.ResourceAdapter:CollectionGroup':
-  label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('name'))}"
+# AssetStorage
+'Neos.ContentRepository.ResourceAdapter:AssetStorage':
   superTypes:
-    'TYPO3.Neos:Node': TRUE
+    'Neos.ContentRepository.ResourceAdapter:AbstractStorage': TRUE
   ui:
     label: i18n
-    icon: 'icon-folder-open-o'
-    groups:
-      general:
-        label: i18n
-        tab: 'default'
-        position: 1
   constraints:
     nodeTypes:
       'Neos.ContentRepository.ResourceAdapter:Collection': TRUE
       '*': FALSE
+
 #
-# MountPoint
+# Collection
 'Neos.ContentRepository.ResourceAdapter:Collection':
   label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('name'))}"
   superTypes:
@@ -63,6 +89,18 @@
       '*': FALSE
 
 #
+# AssetCollectionStorage
+'Neos.ContentRepository.ResourceAdapter:AssetCollectionStorage':
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractStorage': TRUE
+  ui:
+    label: i18n
+  constraints:
+    nodeTypes:
+      'Neos.ContentRepository.ResourceAdapter:AssetCollection': TRUE
+      '*': FALSE
+
+#
 # AssetCollection
 'Neos.ContentRepository.ResourceAdapter:AssetCollection':
   label: "${String.cropAtWord(String.trim(String.stripTags(q(node).property('title'))}"
@@ -79,7 +117,6 @@
   constraints:
     nodeTypes:
       'Neos.ContentRepository.ResourceAdapter:AssetCollection': TRUE
-      'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
       '*': FALSE
   properites:
     title:
@@ -107,8 +144,9 @@
       '*': FALSE
 
 #
-# Asset
-'Neos.ContentRepository.ResourceAdapter:Asset':
+# AbstractAsset
+'Neos.ContentRepository.ResourceAdapter:AbstractAsset':
+  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\AssetNode'
   abstract: TRUE
   superTypes:
     'TYPO3.Neos:Node': TRUE
@@ -127,6 +165,24 @@
     nodeTypes:
       'Neos.ContentRepository.ResourceAdapter:Thumbnail': TRUE
       '*': FALSE
+
+#
+# Asset
+'Neos.ContentRepository.ResourceAdapter:Asset':
+  abstract: TRUE
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractAsset': TRUE
+
+#
+# AssetVariant
+'Neos.ContentRepository.ResourceAdapter:AssetVariant':
+  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\AssetVariantNode'
+  abstract: TRUE
+  childNodes:
+    adjustments:
+      type: 'TYPO3.Neos:ContentCollection'
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractAsset': TRUE
 
 #
 # Document
@@ -161,7 +217,8 @@
 # Thumbnail
 'Neos.ContentRepository.ResourceAdapter:Thumbnail':
   superTypes:
-    'Neos.ContentRepository.ResourceAdapter:Image': TRUE
+    'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
+    'Neos.ContentRepository.ResourceAdapter:DimensionsMixin': TRUE
   properites:
     staticResource:
       type: string
@@ -183,19 +240,11 @@
           group: 'default'
 
 #
-# AbstractVariant
-'Neos.ContentRepository.ResourceAdapter:AbstractVariant':
-  abstract: TRUE
-  childNodes:
-    adjustments:
-      type: 'TYPO3.Neos:ContentCollection'
-
-#
 # ImageVariant
 'Neos.ContentRepository.ResourceAdapter:ImageVariant':
   superTypes:
-    'Neos.ContentRepository.ResourceAdapter:AbstractVariant': TRUE
-    'Neos.ContentRepository.ResourceAdapter:Image': TRUE
+    'Neos.ContentRepository.ResourceAdapter:AssetVariant': TRUE
+    'Neos.ContentRepository.ResourceAdapter:DimensionsMixin': TRUE
   constraints:
     nodeTypes:
       'Neos.ContentRepository.ResourceAdapter:AbstractImageAdjustment': TRUE
@@ -209,13 +258,6 @@
   constraints:
     nodeTypes:
       '*': FALSE
-
-#
-# AbstractImageAdjustment
-'Neos.ContentRepository.ResourceAdapter:AbstractImageAdjustment':
-  abstract: TRUE
-  superTypes:
-    'Neos.ContentRepository.ResourceAdapter:AbstractAdjustment': TRUE
   properites:
     position:
       type: integer
@@ -223,12 +265,13 @@
         label: i18n
         inspector:
           group: 'default'
-    imageVariant:
-      type: string
-      ui:
-        label: i18n
-        inspector:
-          group: 'default'
+
+#
+# AbstractImageAdjustment
+'Neos.ContentRepository.ResourceAdapter:AbstractImageAdjustment':
+  abstract: TRUE
+  superTypes:
+    'Neos.ContentRepository.ResourceAdapter:AbstractAdjustment': TRUE
 
 #
 # CropImageAdjustment
