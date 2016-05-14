@@ -146,7 +146,7 @@
 #
 # AbstractAsset
 'Neos.ContentRepository.ResourceAdapter:AbstractAsset':
-  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\AssetNode'
+  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\Asset'
   abstract: TRUE
   superTypes:
     'TYPO3.Neos:Node': TRUE
@@ -176,7 +176,7 @@
 #
 # AssetVariant
 'Neos.ContentRepository.ResourceAdapter:AssetVariant':
-  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\AssetVariantNode'
+  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\AssetVariant'
   abstract: TRUE
   childNodes:
     adjustments:
@@ -187,18 +187,21 @@
 #
 # Document
 'Neos.ContentRepository.ResourceAdapter:Document':
+  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\Document'
   superTypes:
     'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
 
 #
 # Audio
 'Neos.ContentRepository.ResourceAdapter:Audio':
+  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\Audio'
   superTypes:
     'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
 
 #
 # Video
 'Neos.ContentRepository.ResourceAdapter:Video':
+  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\Video'
   superTypes:
     'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
     'Neos.ContentRepository.ResourceAdapter:DimensionsMixin': TRUE
@@ -206,6 +209,7 @@
 #
 # Image
 'Neos.ContentRepository.ResourceAdapter:Image':
+  class: 'Neos\ContentRepository\ResourceAdapter\Domain\Model\Image'
   superTypes:
     'Neos.ContentRepository.ResourceAdapter:Asset': TRUE
     'Neos.ContentRepository.ResourceAdapter:DimensionsMixin': TRUE

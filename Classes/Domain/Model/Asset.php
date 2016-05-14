@@ -23,7 +23,7 @@ use TYPO3\TYPO3CR\Domain\Model\Node;
  *
  * @api
  */
-class AssetNode extends Node implements AssetInterface
+class Asset extends Node implements AssetInterface
 {
     /**
      * @return string

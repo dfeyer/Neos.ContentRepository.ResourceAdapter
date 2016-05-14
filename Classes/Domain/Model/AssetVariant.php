@@ -25,7 +25,7 @@ use TYPO3\TYPO3CR\Domain\Model\Node;
  *
  * @api
  */
-class AssetVariantNode extends AssetNode implements AssetVariantInterface
+class AssetVariant extends Asset implements AssetVariantInterface
 {
     /**
      * @return AssetInterface
